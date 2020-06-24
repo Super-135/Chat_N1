@@ -151,6 +151,11 @@ public class Controller implements Initializable {
                                 });
                             }
 
+                            if (str.startsWith("/yornickis")){
+                                nick = str.split(" ")[1];
+                                setTitle(nick);
+                            }
+
                         } else {
                             Platform.runLater(() -> {
                                 chatLog.getItems().add(str + "\n");

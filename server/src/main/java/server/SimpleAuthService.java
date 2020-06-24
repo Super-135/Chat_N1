@@ -38,6 +38,7 @@ public class SimpleAuthService implements AuthService {
         return null;
     }
 
+
     @Override
     public boolean registration(String login, String password, String nickname) {
         for (UserData o:users ) {
@@ -47,5 +48,10 @@ public class SimpleAuthService implements AuthService {
         }
         users.add(new UserData(login,password,nickname));
         return true;
+    }
+
+    @Override
+    public boolean changeUser(String oldUser, String newUser) {
+        return false;
     }
 }
