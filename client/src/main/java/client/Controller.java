@@ -22,6 +22,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -51,9 +52,11 @@ public class Controller implements Initializable {
 
     final String IP_ADDRESS = "localhost";
     final int PORT = 8189;
+    private final Integer COUNTLASTMSG = 100;
 
     private boolean authenticated;
     private String nick;
+    private String login;
 
 //    static class  Cell extends ListCell<String> {
 //
@@ -75,6 +78,7 @@ public class Controller implements Initializable {
         clientList.setManaged(authenticated);
         if (!authenticated) {
             nick = "";
+            LocalHistory.closeWriteHistori();
         }
         Platform.runLater(() -> {
             chatLog.getItems().clear();
@@ -122,6 +126,23 @@ public class Controller implements Initializable {
                         if (str.startsWith("/authok ")) {
                             nick = str.split(" ")[1];
                             setAuthenticated(true);
+                            List<String> stringList = LocalHistory.getHistoryChat(login);
+                            if (stringList != null) {
+                                int conter;
+                                if(stringList.size() > COUNTLASTMSG){
+                                    conter = stringList.size() - COUNTLASTMSG;
+                                }else {
+                                    conter = 0;
+                                }
+
+                                for (int i = conter; i < stringList.size(); i++) {
+                                    String s = stringList.get(i);
+                                    Platform.runLater(() -> {
+                                            chatLog.getItems().add(s);
+                                    });
+                                }
+                            }
+                            LocalHistory.startWriteHistori(login);
                             break;
                         }
 
@@ -155,6 +176,7 @@ public class Controller implements Initializable {
                             Platform.runLater(() -> {
                                 chatLog.getItems().add(str + "\n");
                             });
+                            LocalHistory.writeMsg(str);
                         }
                     }
                 } catch (IOException e) {
@@ -191,6 +213,7 @@ public class Controller implements Initializable {
 
         try {
             out.writeUTF("/auth " + loginField.getText().trim() + " " + passwordField.getText().trim());
+            login = loginField.getText().trim();
             passwordField.clear();
         } catch (IOException e) {
             e.printStackTrace();
