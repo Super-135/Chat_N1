@@ -4,6 +4,10 @@ package server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -15,7 +19,12 @@ public class Server {
 
     public Server() {
         clients = new Vector<>();
-        authService = new SimpleAuthService();
+
+        if (!SQLClientHandler.connect()){
+            throw new RuntimeException("Не удалось подключится к БД");
+        }
+
+        authService = new DBAuthService();
         ServerSocket server = null;
         Socket socket;
 
@@ -24,6 +33,7 @@ public class Server {
         try {
             server = new ServerSocket(PORT);
             System.out.println("Сервер запущен!");
+
 
             while (true) {
                 socket = server.accept();
@@ -34,8 +44,10 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            SQLClientHandler.disconnect();
             try {
                 server.close();
+                System.out.println("Отключили DB");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -98,7 +110,7 @@ public class Server {
     public AuthService getAuthService() {
         return authService;
     }
-    private void broadcastClientList(){
+    public void broadcastClientList(){
         StringBuilder sb = new StringBuilder(("/clientlist "));
 
         for (ClientHandler c:clients) {
